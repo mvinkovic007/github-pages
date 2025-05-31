@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ePisarnica - Digitalno Upravljanje Predmetima</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary-blue: #0056b3; 
+            --light-blue: #e6f0ff; 
+            --dark-blue-text: #1a3a5a;
+            --gray-bg: #f4f7fc;
+            --light-gray-border: #d1d9e6;
+            --medium-gray-text: #566573;
+            --white: #ffffff;
+            --sidebar-bg: #2c3e50; 
+            --sidebar-text: #bdc3c7;
+            --sidebar-active: #007bff; 
+            --accent-green: #28a745;
+            --accent-red: #dc3545;
+            --status-otvoren: #ffc107;
+            --status-urjesavanju: #17a2b8;
+            --status-rijesen: #28a745;
+            --status-arhiviran: #6c757d;
+            --shadow-light: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --shadow-medium: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            --card-bg: #ffffff;
+            --card-border: #e0e6ed;
+            --login-overlay-bg: rgba(0,0,0,0.75);
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--gray-bg);
+            color: var(--dark-blue-text);
+            display: flex;
+            min-height: 100vh;
+            box-sizing: border-box;
+            overflow-x: hidden;
+            font-size: 15px;
+        }
+        
+        .app-container { display: none; width: 100%; }
+        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--login-overlay-bg); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .login-box { background-color: var(--white); padding: 40px; border-radius: 8px; box-shadow: var(--shadow-medium); width: 380px; text-align: center; }
+        .login-box h2 { color: var(--primary-blue); margin-bottom: 25px; font-family: 'Poppins', sans-serif; font-weight: 600; }
+        .login-box .input-group { margin-bottom: 20px; text-align: left; }
+        .login-box input[type="text"], .login-box input[type="password"] { width: calc(100% - 22px); padding: 10px; border: 1px solid var(--light-gray-border); border-radius: 5px; font-size: 0.95em; }
+        .login-box button { width: 100%; margin-top: 10px; padding: 12px; background-color: var(--primary-blue); color: var(--white); border: none; border-radius: 5px; font-size: 1em; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease; }
+        .login-box button:hover { background-color: #004494; }
+        .login-logo { font-family: 'Poppins', sans-serif; font-size: 2.2em; font-weight: 700; color: var(--primary-blue); margin-bottom: 10px; }
+        .login-sublogo { font-size: 0.85em; color: var(--medium-gray-text); margin-bottom: 30px; }
+
+        .app-layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; width: 100%; }
+        .sidebar { background-color: var(--sidebar-bg); color: var(--sidebar-text); padding: 20px 0; box-shadow: var(--shadow-medium); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+        .logo-section { padding: 0 20px 20px 20px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 20px; }
+        .logo-text { font-family: 'Poppins', sans-serif; font-size: 1.8em; font-weight: 700; color: var(--white); line-height: 1.2; margin-bottom: 5px; }
+        .logo-subtext { font-size: 0.7em; font-weight: 400; color: var(--sidebar-text); text-transform: uppercase; letter-spacing: 0.5px; }
+        .sidebar-nav ul { list-style: none; padding: 0; margin: 0; }
+        .sidebar-nav li a { display: flex; align-items: center; padding: 14px 20px; color: var(--sidebar-text); text-decoration: none; transition: background-color 0.2s ease, color 0.2s ease; font-weight: 500; font-size: 0.98em; border-left: 3px solid transparent; }
+        .sidebar-nav li a:hover { background-color: rgba(255, 255, 255, 0.08); color: var(--white); border-left: 3px solid var(--sidebar-active); }
+        .sidebar-nav li.active a { background-color: var(--sidebar-active); color: var(--white); font-weight: 600; border-left: 3px solid var(--white); }
+        .sidebar-nav li a i { margin-right: 12px; font-size: 1.1em; width: 20px; text-align: center; color: var(--sidebar-text); }
+        .sidebar-nav li.active a i { color: var(--white); }
+        .sidebar-nav .nav-group-title { padding: 10px 20px 5px; font-size: 0.75em; font-weight: 600; color: #95a5a6; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 15px; }
+
+        .main-content-wrapper { padding: 30px; background-color: var(--gray-bg); overflow-y: auto; }
+        .page-header { background-color: var(--white); border-radius: 8px; box-shadow: var(--shadow-light); padding: 20px 30px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .page-header h1 { margin: 0; font-family: 'Poppins', sans-serif; font-size: 1.8em; font-weight: 600; color: var(--dark-blue-text); }
+        .page-header .user-info { font-size: 0.9em; color: var(--medium-gray-text); }
+        #loggedInUser { font-weight: 600; color: var(--dark-blue-text); }
+
+        .content-card { background-color: var(--card-bg); padding: 30px; border-radius: 8px; box-shadow: var(--shadow-light); margin-bottom: 30px; border: 1px solid var(--card-border); display: none; }
+        .content-card.active-section { display: block; }
+        h2 { font-family: 'Poppins', sans-serif; color: var(--primary-blue); border-bottom: 2px solid var(--primary-blue); padding-bottom: 12px; margin-top: 0; margin-bottom: 25px; font-size: 1.6em; font-weight: 600; }
+        h3 { font-family: 'Poppins', sans-serif; color: var(--dark-blue-text); margin-top: 20px; margin-bottom: 15px; font-size: 1.3em; font-weight: 500; }
+        .input-group { margin-bottom: 18px; }
+        .input-group.inline { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: flex-end; }
+        label { display: block; margin-bottom: 6px; font-weight: 500; color: var(--medium-gray-text); font-size: 0.9em; }
+        input[type="text"], input[type="number"], input[type="date"], input[type="email"], select, textarea { width: 100%; padding: 10px; border: 1px solid var(--light-gray-border); border-radius: 5px; font-size: 0.95em; box-sizing: border-box; transition: border-color 0.2s ease, box-shadow 0.2s ease; font-family: 'Montserrat', sans-serif; }
+        input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, input[type="email"]:focus, select:focus, textarea:focus { border-color: var(--primary-blue); box-shadow: 0 0 0 0.15rem rgba(0, 86, 179, 0.25); outline: none; }
+        button, .btn { display: inline-block; padding: 10px 18px; background-color: var(--accent-green); color: var(--white); border: none; border-radius: 5px; font-size: 0.95em; font-weight: 600; cursor: pointer; transition: background-color 0.2s ease, transform 0.1s ease; margin-top: 10px; margin-right: 10px; box-shadow: var(--shadow-light); }
+        button:last-child { margin-right: 0; }
+        button:hover, .btn:hover { transform: translateY(-1px); }
+        button.primary, .btn.primary { background-color: var(--primary-blue); }
+        button.primary:hover, .btn.primary:hover { background-color: #004494; }
+        button.secondary, .btn.secondary { background-color: var(--medium-gray-text); }
+        button.secondary:hover, .btn.secondary:hover { background-color: #5a6268; }
+        button.danger, .btn.danger { background-color: var(--accent-red); }
+        button.danger:hover, .btn.danger:hover { background-color: #c82333; }
+
+        .result-section { margin-top: 30px; padding: 20px; border: 1px solid var(--primary-blue); border-radius: 8px; background-color: var(--light-blue); box-shadow: var(--shadow-light); }
+        .result-item { margin-bottom: 12px; }
+        .result-item:last-child { margin-bottom: 0; }
+        .result-label { font-weight: 600; color: var(--dark-blue-text); display: block; margin-bottom: 4px; font-size: 0.85em; }
+        .result-value { background-color: var(--white); padding: 8px 10px; border: 1px solid var(--light-gray-border); border-radius: 4px; word-wrap: break-word; white-space: pre-wrap; font-family: 'Poppins', monospace; font-size: 0.9em; color: var(--dark-blue-text); min-height: 1.2em; }
+        .status-badge { padding: 4px 10px; border-radius: 15px; color: var(--white); font-size: 0.8em; font-weight: 500; display: inline-block; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-otvoren { background-color: var(--status-otvoren); color: #333; }
+        .status-urjesavanju { background-color: var(--status-urjesavanju); }
+        .status-rijesen { background-color: var(--status-rijesen); }
+        .status-arhiviran { background-color: var(--status-arhiviran); }
+
+        .case-cover-simulation { border: 1px solid var(--light-gray-border); padding: 30px; margin-top: 30px; background-color: #fafcff; border-radius: 8px; box-shadow: var(--shadow-light); font-family: 'Times New Roman', Times, serif; font-size: 12pt; color: #333; }
+        .case-cover-simulation p { margin: 12px 0; line-height: 1.6; }
+        .case-cover-simulation .line { border-bottom: 1px solid #999; padding-bottom: 2px; margin-top: 2px; display: inline-block; min-width: 200px; min-height: 1.3em; font-weight: bold; }
+        .case-cover-simulation .body-name { font-size: 11pt; color: var(--medium-gray-text); text-align: right; margin-bottom: 25px; font-style: italic; }
+        .case-cover-simulation .footer-info { margin-top: 50px; font-size: 9pt; color: #777; text-align: center; }
+        #simulacijaKlasifikacijskaOmot { font-weight: bold; color: var(--dark-blue-text); }
+        #simulacijaPredmetOmot { font-style: italic; }
+
+        .placeholder-text { color: var(--medium-gray-text); font-style: italic; text-align: center; padding: 40px; border: 2px dashed var(--light-gray-border); border-radius: 8px; background-color: #fdfdfd; }
+        
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9em; }
+        .data-table th, .data-table td { border: 1px solid var(--light-gray-border); padding: 8px 10px; text-align: left; }
+        .data-table th { background-color: #e9ecef; font-weight: 600; color: var(--medium-gray-text); }
+        .data-table tbody tr:nth-child(even) { background-color: #f8f9fa; }
+        .data-table tbody tr:hover { background-color: #e6f0ff; }
+        
+        .stamp-simulation { border: 2px dashed var(--primary-blue); padding: 15px; margin-top: 20px; background-color: var(--light-blue); border-radius: 5px; font-family: 'Courier New', Courier, monospace; font-size: 0.9em; line-height: 1.5; }
+        .stamp-simulation h4 { text-align: center; margin-top: 0; margin-bottom: 10px; font-family: 'Poppins', sans-serif; color: var(--primary-blue); border-bottom: 1px solid var(--primary-blue); padding-bottom: 5px; }
+        .stamp-simulation p { margin: 4px 0; }
+        .stamp-simulation strong { display: inline-block; min-width: 100px; }
+
+        .envelope-simulation .sender-info { text-align: left; font-size: 0.8em; margin-bottom: 20px; }
+        .envelope-simulation .recipient-info { text-align: center; font-size: 1em; padding: 10px; border: 1px solid var(--dark-blue-text); margin: 0 auto; max-width: 280px; }
+
+
+        @media (max-width: 992px) { .app-layout {grid-template-columns: 1fr;} .sidebar {display: none;} .main-content-wrapper {padding: 20px;} }
+        @media (max-width: 768px) { .login-box { width: 90%; padding: 30px;} .content-card {padding: 20px;} .page-header h1 { font-size: 1.5em; } h2 { font-size: 1.4em; } .input-group.inline { grid-template-columns: 1fr; } .case-cover-simulation { font-size: 11pt; padding: 20px; } .case-cover-simulation .line { min-width: 150px; } }
+    </style>
+</head>
+<body>
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <div class="login-logo">ePisarnica</div>
+            <div class="login-sublogo">Sustav za digitalno uredsko poslovanje</div>
+            <h2>Prijava korisnika</h2>
+            <div class="input-group">
+                <label for="username">Korisničko ime:</label>
+                <input type="text" id="username" value="referent01">
+            </div>
+            <div class="input-group">
+                <label for="password">Lozinka:</label>
+                <input type="password" id="password" value="ured123">
+            </div>
+            <button onclick="handleLogin()">Prijavi se</button>
+        </div>
+    </div>
+
+    <div class="app-container" id="appContainer">
+        <div class="app-layout">
+            <div class="sidebar no-print">
+                 <div class="logo-section">
+                    <div class="logo-text">ePisarnica</div>
+                    <div class="logo-subtext">Digitalno uredsko poslovanje</div>
+                </div>
+                <nav class="sidebar-nav">
+                    <ul>
+                        <div class="nav-group-title">Predmeti</div>
+                        <li class="active"><a href="#osnivanje-predmeta-sekcija"><i class="fas fa-file-medical"></i> Osnivanje predmeta</a></li>
+                        <li><a href="#pregled-predmeta-sekcija"><i class="fas fa-folder-open"></i> Pregled predmeta</a></li>
+                        <li><a href="#sadrzaj-predmeta-sekcija"><i class="fas fa-file-alt"></i> Sadržaj predmeta</a></li>
+                        <li><a href="#omot-spisa-sekcija"><i class="fas fa-folder"></i> Omot spisa</a></li>
+
+                        <div class="nav-group-title">Pošta</div>
+                        <li><a href="#ulazna-posta-sekcija"><i class="fas fa-envelope-open-text"></i> Knjiga ulazne pošte</a></li>
+                        <li><a href="#izlazna-posta-sekcija"><i class="fas fa-paper-plane"></i> Knjiga izlazne pošte</a></li>
+                        
+                        <div class="nav-group-title">Pismena</div>
+                        <li><a href="#pismena-sekcija"><i class="fas fa-edit"></i> Pismena (Podnesci/Akti)</a></li>
+                        
+                        <div class="nav-group-title">Administracija i Alati</div>
+                        <li><a href="#plan-klasifikacije-sekcija"><i class="fas fa-sitemap"></i> Plan klas. oznaka</a></li>
+                        <li><a href="#zadaci-kretaljka-sekcija"><i class="fas fa-tasks"></i> Zadaci i Kretaljka</a></li>
+                        <li><a href="#statistika-sekcija"><i class="fas fa-chart-bar"></i> Statistika rješavanja</a></li>
+                        <li><a href="#izvjestaji-analiza-sekcija"><i class="fas fa-chart-line"></i> Izvještaji i Analiza</a></li>
+                        <li><a href="#administracija-korisnika-sekcija"><i class="fas fa-users-cog"></i> Administracija sustava</a></li>
+
+                        <div class="nav-group-title">Napredno</div>
+                        <li><a href="#epotpis-sekcija"><i class="fas fa-signature"></i> Elektroničko potpisivanje</a></li>
+                        <li><a href="#portal-stranke-sekcija"><i class="fas fa-globe"></i> Portal za stranke</a></li>
+                        
+                        <div class="nav-group-title" style="margin-top: 30px;">Korisnik</div>
+                        <li><a href="#" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Odjava</a></li>
+                    </ul>
+                </nav>
+            </div>
+
+            <div class="main-content-wrapper">
+                <div class="page-header no-print">
+                    <h1 id="pageTitle">Osnivanje novog predmeta</h1>
+                    <div class="user-info">Prijavljeni korisnik: <span id="loggedInUser"></span></div>
+                </div>
+
+                <div class="content-card active-section" id="osnivanje-predmeta-sekcija">
+                    <h2>Osnivanje novog predmeta</h2>
+                    <div class="input-group">
+                        <label for="nazivTijela">Naziv javnopravnog tijela:</label>
+                        <input type="text" id="nazivTijela" value="Gradski ured za opću upravu">
+                    </div>
+                    <div class="input-group inline">
+                        <div>
+                            <label for="statusPredmeta">Status predmeta:</label>
+                            <select id="statusPredmeta" onchange="generirajOznake()">
+                                <option value="Otvoren" data-class="status-otvoren" selected>Otvoren</option>
+                                <option value="U rješavanju" data-class="status-urjesavanju">U rješavanju</option>
+                                <option value="Riješen" data-class="status-rijesen">Riješen</option>
+                                <option value="Arhiviran" data-class="status-arhiviran">Arhiviran</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="datumOsnivanjaPredmeta">Datum osnivanja predmeta:</label>
+                            <input type="date" id="datumOsnivanjaPredmeta" onchange="generirajOznake()">
+                        </div>
+                    </div>
+
+                    <h3>Klasifikacijska oznaka (KLASA)</h3>
+                    <div class="input-group inline">
+                        <div>
+                            <label for="vrstaPostupka">Vrsta postupka:</label>
+                            <select id="vrstaPostupka" onchange="generirajOznake()">
+                                <option value="">Nije upravni postupak</option>
+                                <option value="UP/I">UP/I (Prvostupanjski)</option>
+                                <option value="UP/II">UP/II (Drugostupanjski)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="oznakaUstrojstveneJediniceOmot">Ustrojstvena jedinica (za omot):</label>
+                            <select id="oznakaUstrojstveneJediniceOmot" onchange="generirajOznake()"></select>
+                        </div>
+                    </div>
+                    <div class="input-group inline">
+                        <div>
+                            <label for="klasaGlavnaGrupa">Glavna grupa:</label>
+                            <select id="klasaGlavnaGrupa" onchange="populateGrupa(); generirajOznake();"></select>
+                        </div>
+                        <div>
+                            <label for="klasaGrupa">Grupa:</label>
+                            <select id="klasaGrupa" onchange="populatePodgrupa(); generirajOznake();"></select>
+                        </div>
+                    </div>
+                    <div class="input-group inline">
+                        <div>
+                            <label for="klasaPodgrupa">Podgrupa:</label>
+                            <select id="klasaPodgrupa" onchange="populateDjelatnost(); generirajOznake();"></select>
+                        </div>
+                        <div>
+                            <label for="klasaDjelatnost">Djelatnost unutar podgrupe:</label>
+                            <select id="klasaDjelatnost" onchange="generirajOznake()"></select>
+                        </div>
+                    </div>
+                    <div class="input-group inline">
+                        <div>
+                            <label for="klasaGodina">Godina (npr. 24):</label>
+                            <input type="text" id="klasaGodina" maxlength="2" placeholder="24" oninput="generirajOznake()">
+                        </div>
+                        <div>
+                            <label for="klasaOblik">Oznaka dosjea/Oblik (npr. 01):</label>
+                            <input type="text" id="klasaOblik" placeholder="01 (ako postoji)" oninput="generirajOznake()">
+                        </div>
+                        <div>
+                            <label for="klasaRedniBrojPredmeta">Redni broj predmeta:</label>
+                            <input type="number" id="klasaRedniBrojPredmeta" value="1" min="1" oninput="generirajOznake()">
+                        </div>
+                    </div>
+
+                    <h3>Urudžbeni broj (URBROJ) - za akte</h3>
+                     <div class="input-group inline">
+                        <div>
+                            <label for="urbrojOznakaTijela">Brojčana oznaka tijela:</label>
+                            <input type="text" id="urbrojOznakaTijela" value="2100" title="Jedinstvena brojčana oznaka dodijeljena javnopravnom tijelu" oninput="generirajOznake()">
+                        </div>
+                        <div>
+                            <label for="urbrojOUJ">Ustrojstvena jedinica (URBROJ):</label>
+                            <select id="urbrojOUJ" onchange="generirajOznake()"></select>
+                        </div>
+                    </div>
+                    <div class="input-group inline">
+                        <div>
+                            <label for="urbrojSluzbenaOsoba">Službena osoba (npr. 01):</label>
+                            <input type="text" id="urbrojSluzbenaOsoba" placeholder="01 (ako postoji)" oninput="generirajOznake()">
+                        </div>
+                        <div>
+                            <label for="urbrojGodina">Godina akta (npr. 24):</label>
+                            <input type="text" id="urbrojGodina" maxlength="2" placeholder="24" oninput="generirajOznake()">
+                        </div>
+                        <div>
+                            <label for="urbrojRedniBrojPismena">Redni broj pismena (u predmetu):</label>
+                            <input type="number" id="urbrojRedniBrojPismena" value="1" min="1" oninput="generirajOznake()">
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="predmetOpis">Kratak opis predmeta (za polje "Predmet"):</label>
+                        <textarea id="predmetOpis" rows="3" placeholder="Unesite kratak i jasan opis predmeta..." oninput="generirajOznake()"></textarea>
+                    </div>
+                     <div class="input-group">
+                        <label for="strankaPredmeta">Stranka u predmetu (ako postoji):</label>
+                        <input type="text" id="strankaPredmeta" placeholder="Npr. Ime Prezime, Adresa" oninput="generirajOznake()">
+                    </div>
+
+                    <button onclick="generirajOznake(true)" class="primary"><i class="fas fa-cogs"></i> Generiraj/Ažuriraj Oznake i Spremi Predmet</button>
+
+                    <div class="result-section">
+                        <h3>Generirani podaci za Predmet</h3>
+                        <div class="result-item">
+                            <span class="result-label">Klasifikacijska oznaka (KLASA):</span>
+                            <div id="klasifikacijskaOznakaResult" class="result-value"></div>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Urudžbeni broj (URBROJ) - za prvi akt:</span>
+                            <div id="urBrojResult" class="result-value"></div>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Predmet (opis):</span>
+                            <div id="predmetResult" class="result-value"></div>
+                        </div>
+                         <div class="result-item">
+                            <span class="result-label">Stranka:</span>
+                            <div id="strankaResult" class="result-value"></div>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Status predmeta:</span>
+                            <div id="statusPredmetaResult" class="result-value"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="content-card" id="ulazna-posta-sekcija">
+                    <h2>Knjiga ulazne pošte</h2>
+                    <h3>Novi unos u knjigu ulazne pošte</h3>
+                    <div class="input-group inline">
+                        <div>
+                            <label for="upDatumPrimitka">Datum primitka:</label>
+                            <input type="date" id="upDatumPrimitka">
+                        </div>
+                        <div>
+                            <label for="upPosiljatelj">Pošiljatelj:</label>
+                            <input type="text" id="upPosiljatelj" placeholder="Naziv ili Ime i Prezime">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="upAdresaPosiljatelja">Adresa pošiljatelja:</label>
+                        <input type="text" id="upAdresaPosiljatelja" placeholder="Ulica i broj, mjesto">
+                    </div>
+                    <div class="input-group">
+                        <label for="upSadrzajPismena">Vrsta / Kratak sadržaj pismena:</label>
+                        <textarea id="upSadrzajPismena" rows="2" placeholder="Npr. Molba, Zahtjev za..."></textarea>
+                    </div>
+                    <div class="input-group inline">
+                        <div>
+                            <label for="upVezaNaPredmet">Veza na KLASA/URBROJ predmeta (ako postoji):</label>
+                            <input type="text" id="upVezaNaPredmet" placeholder="Npr. KLASA: 023..., URBROJ: ...">
+                        </div>
+                        <div>
+                            <label for="upBrojPriloga">Broj priloga:</label>
+                            <input type="number" id="upBrojPriloga" value="0" min="0">
+                        </div>
+                    </div>
+                     <div class="input-group inline">
+                        <div>
+                            <label for="upPrimilaJedinica">Primila ustrojstvena jedinica:</label>
+                            <select id="upPrimilaJedinica"></select>
+                        </div>
+                        <div>
+                            <label for="upPrimioPotpis">Primio/la (korisnik):</label>
+                            <input type="text" id="upPrimioPotpis" readonly>
+                        </div>
+                    </div>
+                    <button onclick="dodajUlaznuPostu()" class="primary"><i class="fas fa-plus"></i> Dodaj unos</button>
+                    <button onclick="generirajPrijemniStampiljPreview()" class="secondary"><i class="fas fa-stamp"></i> Prijemni štambilj (Pregled)</button>
+
+                    <div id="prijemniStampiljPreview" class="stamp-simulation" style="display: none; margin-top:20px;">
+                        <h4>PRIJEMNI ŠTAMBILJ (Podaci)</h4>
+                        <p><strong>Primljeno:</strong> <span id="stampDatum"></span></p>
+                        <p><strong>Tijelo:</strong> <span id="stampTijelo"></span></p>
+                        <p><strong>Org. jed.:</strong> <span id="stampOrgJed"></span></p>
+                        <p><strong>Klasa (veza):</strong> <span id="stampKlasa"></span></p>
+                        <p><strong>Ur. broj (veza):</strong> <span id="stampUrbroj"></span></p>
+                        <p><strong>Prilozi:</strong> <span id="stampPrilozi"></span></p>
+                        <p><strong>Jed. oznaka pismena (JOP):</strong> <span id="stampJOP"></span></p>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Evidencija ulazne pošte</h3>
+                    <table class="data-table" id="ulaznaPostaTable">
+                        <thead>
+                            <tr>
+                                <th>Rbr.</th>
+                                <th>Datum Primitka</th>
+                                <th>Pošiljatelj</th>
+                                <th>Sadržaj</th>
+                                <th>Veza na predmet</th>
+                                <th>Prilozi</th>
+                                <th>Primio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+                
+                <div class="content-card" id="izlazna-posta-sekcija">
+                    <h2>Knjiga izlazne pošte</h2>
+                    <h3>Novi unos u knjigu izlazne pošte</h3>
+                     <div class="input-group inline">
+                        <div>
+                            <label for="ipDatumOtpreme">Datum otpreme:</label>
+                            <input type="date" id="ipDatumOtpreme">
+                        </div>
+                        <div>
+                            <label for="ipPrimatelj">Primatelj:</label>
+                            <input type="text" id="ipPrimatelj" placeholder="Naziv ili Ime i Prezime">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="ipAdresaPrimatelja">Adresa primatelja:</label>
+                        <input type="text" id="ipAdresaPrimatelja" placeholder="Ulica i broj, mjesto">
+                    </div>
+                    <div class="input-group">
+                        <label for="ipSadrzajPosiljke">Predmet pošiljke / Opis akta:</label>
+                        <textarea id="ipSadrzajPosiljke" rows="2" placeholder="Npr. Odgovor na upit, Rješenje..."></textarea>
+                    </div>
+                    <div class="input-group inline">
+                        <div>
+                            <label for="ipVezaNaAkt">Veza na KLASA i URBROJ akta:</label>
+                            <input type="text" id="ipVezaNaAkt" placeholder="Npr. KLASA: ..., URBROJ: ...">
+                        </div>
+                        <div>
+                            <label for="ipNacinOtpreme">Način otpreme:</label>
+                            <select id="ipNacinOtpreme">
+                                <option value="Pošta - obična">Pošta - obična</option>
+                                <option value="Pošta - preporučeno">Pošta - preporučeno</option>
+                                <option value="Elektronički">Elektronički</option>
+                                <option value="Osobno">Osobno</option>
+                            </select>
+                        </div>
+                         <div>
+                            <label for="ipOtpremioPotpis">Otpremio/la (korisnik):</label>
+                            <input type="text" id="ipOtpremioPotpis" readonly>
+                        </div>
+                    </div>
+                    <button onclick="dodajIzlaznuPostu()" class="primary"><i class="fas fa-plus"></i> Dodaj unos</button>
+                    <button onclick="generirajOmotnicuPreview()" class="secondary"><i class="fas fa-envelope"></i> Omotnica (Pregled)</button>
+
+                    <div id="omotnicaPreview" class="stamp-simulation envelope-simulation" style="display: none; margin-top:20px;">
+                        <h4>OMOTNICA (Podaci)</h4>
+                        <div class="sender-info">
+                            <p><strong>Pošiljatelj:</strong> <span id="omPosiljateljNaziv"></span></p>
+                            <p><span id="omPosiljateljAdresa"></span></p>
+                            <p style="font-size: 0.8em; margin-top: 5px;">KLASA/URBROJ: <span id="omKlasaUrbrojDokumenta"></span></p>
+                        </div>
+                        <div class="recipient-info">
+                            <p><strong>Primatelj:</strong> <span id="omPrimateljNaziv"></span></p>
+                            <p><span id="omPrimateljAdresa"></span></p>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Evidencija izlazne pošte</h3>
+                    <table class="data-table" id="izlaznaPostaTable">
+                        <thead>
+                            <tr>
+                                <th>Rbr.</th>
+                                <th>Datum Otpreme</th>
+                                <th>Primatelj</th>
+                                <th>Sadržaj</th>
+                                <th>Veza na akt</th>
+                                <th>Način otpreme</th>
+                                <th>Otpremio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+
+
+                <div class="content-card" id="sadrzaj-predmeta-sekcija">
+                    <h2>Sadržaj predmeta</h2>
+                    <div id="sadrzajPredmetaInfo" class="result-section" style="background-color: var(--white); border-color: var(--light-gray-border);">
+                        <p><strong>KLASA:</strong> <span id="spInfoKlasa">Nije odabran predmet</span></p>
+                        <p><strong>URBROJ (osnovni):</strong> <span id="spInfoUrbroj">N/A</span></p>
+                        <p><strong>Opis predmeta:</strong> <span id="spInfoOpis">N/A</span></p>
+                        <p><strong>Stranka:</strong> <span id="spInfoStranka">N/A</span></p>
+                        <p><strong>Status:</strong> <span id="spInfoStatus" class="status-badge">N/A</span></p>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Popis pismena u predmetu</h3>
+                     <div class="input-group inline">
+                        <div>
+                            <label for="novoPismenoDatum">Datum pismena:</label>
+                            <input type="date" id="novoPismenoDatum">
+                        </div>
+                         <div>
+                            <label for="novoPismenoVrsta">Vrsta/Opis pismena:</label>
+                            <input type="text" id="novoPismenoVrsta" placeholder="Npr. Podnesak stranke, Rješenje, Dopis...">
+                        </div>
+                        <div>
+                            <label for="novoPismenoPrilozi">Broj priloga:</label>
+                            <input type="number" id="novoPismenoPrilozi" value="0" min="0">
+                        </div>
+                         <button onclick="dodajPismenoUPredmet()" class="primary" style="align-self: flex-end;"><i class="fas fa-plus"></i> Dodaj pismeno</button>
+                    </div>
+                    <table class="data-table" id="popisPismenaTable">
+                        <thead>
+                            <tr>
+                                <th>Rbr.</th>
+                                <th>Datum pismena</th>
+                                <th>Vrsta/Opis pismena</th>
+                                <th>Broj priloga</th>
+                                </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+
+                    <h3 style="margin-top: 30px;">Događaji na predmetu</h3>
+                    <div class="input-group inline">
+                        <div>
+                            <label for="noviDogadajDatum">Datum događaja:</label>
+                            <input type="datetime-local" id="noviDogadajDatum">
+                        </div>
+                        <div>
+                            <label for="noviDogadajOpis">Opis događaja:</label>
+                            <input type="text" id="noviDogadajOpis" placeholder="Npr. Ročište, Zaprimljen podnesak...">
+                        </div>
+                        <button onclick="dodajDogadajNaPredmet()" class="primary" style="align-self: flex-end;"><i class="fas fa-plus"></i> Dodaj događaj</button>
+                    </div>
+                    <table class="data-table" id="dogadajiNaPredmetuTable">
+                        <thead>
+                            <tr>
+                                <th>Rbr.</th>
+                                <th>Datum i vrijeme</th>
+                                <th>Opis događaja</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="content-card" id="pregled-predmeta-sekcija"><h2>Pregled predmeta</h2><p class="placeholder-text">Tablični pregled predmeta s filtriranjem i pretragom. Implementacija u tijeku.</p></div>
+                <div class="content-card" id="pismena-sekcija"><h2>Pismena (Podnesci i Akti)</h2><p class="placeholder-text">Detaljna obrada pojedinačnih pismena. Implementacija u tijeku.</p></div>
+                <div class="content-card" id="plan-klasifikacije-sekcija"><h2>Plan klasifikacijskih oznaka</h2><p class="placeholder-text">Administracija Plana. Implementacija u tijeku.</p></div>
+                <div class="content-card" id="omot-spisa-sekcija">
+                    <h2>Simulacija Omota Spisa</h2>
+                    <button onclick="printDiv('omotSpisaContent', 'Omot Spisa')" class="primary no-print"><i class="fas fa-print"></i> Ispiši Omot Spisa</button>
+                    <div class="case-cover-simulation" id="omotSpisaContent">
+                        <p class="body-name">Tijelo: <span id="simulacijaNazivTijelaOmot">[Naziv tijela]</span></p>
+                        <hr style="border-top: 1px dashed #ccc; margin: 15px 0;">
+                        <p>Oznaka unutarnje ustrojstvene jedinice: <span id="simulacijaUstrojstvenaOmot" class="line"></span></p>
+                        <p>Klasifikacijska oznaka: <span id="simulacijaKlasifikacijskaOmot" class="line"></span></p>
+                        <p>Predmet: <span id="simulacijaPredmetOmot" class="line"></span></p>
+                        <p>Status predmeta: <span id="simulacijaStatusPredmetaOmot" class="line" style="min-width:auto;"></span></p>
+                        <div style="min-height: 200px;"></div>
+                        <div class="footer-info">Obrazac sukladno Uredbi o uredskom poslovanju (NN 75/21)</div>
+                    </div>
+                </div>
+                <div class="content-card" id="zadaci-kretaljka-sekcija"><h2>Zadaci i Kretaljka (Workflow)</h2><p class="placeholder-text">Implementacija u tijeku.</p></div>
+                <div class="content-card" id="statistika-sekcija"><h2>Statistika rješavanja predmeta</h2><p class="placeholder-text">Implementacija u tijeku.</p></div>
+                <div class="content-card" id="administracija-korisnika-sekcija"><h2>Administracija sustava</h2><p class="placeholder-text">Implementacija u tijeku.</p></div>
+                <div class="content-card" id="epotpis-sekcija"><h2>Elektroničko potpisivanje</h2><p class="placeholder-text">Implementacija u tijeku.</p></div>
+                <div class="content-card" id="portal-stranke-sekcija"><h2>Online status i obavijesti za stranke</h2><p class="placeholder-text">Implementacija u tijeku.</p></div>
+                <div class="content-card" id="izvjestaji-analiza-sekcija"><h2>Izvještaji i Analiza Trendova</h2><p class="placeholder-text">Implementacija u tijeku.</p></div>
+
+            </div> 
+        </div> 
+    </div> 
+
+    <div class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden" id="printPreviewOverlayGlobal">
+        <div class="bg-white p-8 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
+            <div class="flex justify-between items-center mb-4 no-print">
+                <h3 class="text-xl font-semibold text-gray-700">Pregled za ispis</h3>
+                <button onclick="closePrintPreviewGlobal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div id="printPreviewBodyGlobal" class="print-area-global"></div>
+            <div class="mt-6 text-right space-x-3 no-print">
+                <button onclick="window.print()" class="btn primary"><i class="fas fa-print"></i> Ispiši</button>
+                <button onclick="closePrintPreviewGlobal()" class="btn secondary">Zatvori</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // Konstante i globalne varijable
+    let loggedInUsername = '';
+    const DATA_KLASIFIKACIJA = { /* ... ostaje isto kao prije ... */ 
+        "0": { 
+            name: "DRŽAVNO USTROJSTVO, UPRAVA I PRAVOSUĐE",
+            groups: {
+                "00": { 
+                    name: "OPĆI POSLOVI DRŽAVNE UPRAVE",
+                    subgroups: {
+                        "003": { name: "Normativna djelatnost i opći akti", activities: {"01": "Izrada statuta", "02": "Izrada pravilnika", "03": "Izrada odluka", "05": "Etički kodeks"} },
+                        "007": { name: "Osnivanje, ustroj i djelatnosti tijela", activities: { "01": "Osnivanje tijela/ustanove", "02": "Promjene ustroja", "03": "Unutarnje ustrojstvo (pravilnik)"} },
+                        "008": { name: "Pristup informacijama", activities: { "01": "Zahtjevi za pristup informacijama", "02": "Žalbe na rješenja o pristupu"} },
+                        "034": { name: "Izdavanje javnih isprava, uvjerenja i potvrda", activities: { "01": "Izdavanje uvjerenja", "02": "Izdavanje potvrda", "03": "Izdavanje prijepisa/preslika"} },
+                        "035": { name: "Uredsko poslovanje i pismohrana", activities: {"01": "Pravilnik o uredskom poslovanju", "02": "Arhiviranje gradiva", "03": "Izlučivanje gradiva", "05": "Knjiga primljene pošte", "06": "Urudžbeni zapisnik"} }
+                    }
+                },
+                "02": {
+                    name: "UPRAVLJANJE I ORGANIZACIJA",
+                    subgroups: { "023": { name: "Planiranje i programiranje rada", activities: {"01": "Godišnji plan i program rada", "03": "Strateški planovi razvoja"} } }
+                }
+            }
+        },
+        "1": {
+            name: "RAD I RADNI ODNOSI, SOCIJALNA SKRB",
+            groups: {
+                "10": {
+                    name: "RADNI ODNOSI (OPĆENITO)",
+                    subgroups: {
+                        "100": { name: "Zasnivanje i prestanak radnog odnosa", activities: {"02": "Objavljivanje natječaja/oglasa", "05": "Ugovori o radu", "07": "Prestanak radnog odnosa"} },
+                        "101": { name: "Prava i obveze iz radnog odnosa", activities: {"01": "Godišnji odmori (rješenja)", "02": "Dopusti (plaćeni, neplaćeni)"} }
+                    }
+                }
+            }
+        },
+        "3": {
+            name: "GOSPODARSTVO",
+            groups: { "36": { name: "PROSTORNO UREĐENJE I GRADITELJSTVO", subgroups: { "360": { name: "Dokumenti prostornog uređenja", activities: {"01": "Prostorni planovi"} }, "361": { name: "Lokacijske, građevinske i uporabne dozvole", activities: {"01": "Lokacijska dozvola"} } } } }
+        },
+        "4": { name: "FINANCIJE", groups: { "40": { name: "FINANCIJE (OPĆENITO)", subgroups: { "400": { name: "Proračun i financijski planovi", activities: {"01": "Izrada prijedloga", "04": "Financijski izvještaji"} }, "402": { name: "Javna nabava", activities: {"01": "Plan nabave"} } } } } },
+        "6": { name: "OBRAZOVANJE, ZNANOST, KULTURA I SPORT", groups: { "60": { name: "OBRAZOVANJE", subgroups: { "602": { name: "SREDNJE ŠKOLSTVO", activities: { "01": "Upisi učenika" } } } } } }
+    };
+    const DATA_USTROJSTVENE_JEDINICE = { /* ... ostaje isto kao prije ... */ 
+        "01": "URED GRADONAČELNIKA", "02": "UPRAVNI ODJEL ZA OPĆU UPRAVU I PRAVNE POSLOVE", "03": "UPRAVNI ODJEL ZA FINANCIJE I PRORAČUN", "04": "UPRAVNI ODJEL ZA KOMUNALNO GOSPODARSTVO I PROSTORNO UREĐENJE", "05": "UPRAVNI ODJEL ZA DRUŠTVENE DJELATNOSTI"
+    };
+
+    // Globalne varijable za pohranu podataka
+    let trenutniPredmetPodaci = null;
+    let evidencijaUlaznePoste = [];
+    let evidencijaIzlaznePoste = [];
+    let pismenaZaTrenutniPredmet = [];
+    let dogadajiZaTrenutniPredmet = [];
+    let ulaznaPostaCounter = 1;
+    let izlaznaPostaCounter = 1;
+    let pismenaCounter = 1;
+    let dogadajiCounter = 1;
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentYear = new Date().getFullYear().toString().slice(-2);
+        if(document.getElementById('klasaGodina')) document.getElementById('klasaGodina').value = currentYear;
+        if(document.getElementById('urbrojGodina')) document.getElementById('urbrojGodina').value = currentYear;
+        const currentDate = new Date();
+        if(document.getElementById('datumOsnivanjaPredmeta')) document.getElementById('datumOsnivanjaPredmeta').valueAsDate = currentDate;
+        if(document.getElementById('upDatumPrimitka')) document.getElementById('upDatumPrimitka').valueAsDate = currentDate;
+        if(document.getElementById('ipDatumOtpreme')) document.getElementById('ipDatumOtpreme').valueAsDate = currentDate;
+        if(document.getElementById('novoPismenoDatum')) document.getElementById('novoPismenoDatum').valueAsDate = currentDate;
+        if(document.getElementById('noviDogadajDatum')) {
+            // Format YYYY-MM-DDTHH:mm
+            const year = currentDate.getFullYear();
+            const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+            const day = currentDate.getDate().toString().padStart(2, '0');
+            const hours = currentDate.getHours().toString().padStart(2, '0');
+            const minutes = currentDate.getMinutes().toString().padStart(2, '0');
+            document.getElementById('noviDogadajDatum').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+
+        populateUstrojstveneJedinice();
+        populateGlavnaGrupa();
+        
+        const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                const targetId = this.getAttribute('href');
+                if (targetId && targetId.startsWith('#') && targetId.length > 1) {
+                    e.preventDefault();
+                    setActiveSection(targetId.substring(1));
+                    const pageTitleElement = document.getElementById('pageTitle');
+                    if (pageTitleElement) {
+                        const linkText = Array.from(this.childNodes).filter(node => node.nodeType === Node.TEXT_NODE).map(node => node.textContent.trim()).join('');
+                        pageTitleElement.textContent = linkText || "ePisarnica";
+                    }
+                }
+            });
+        });
+        
+        setTimeout(() => { if(typeof generirajOznake === "function") generirajOznake(); }, 200);
+        azurirajPrikazSadrzajaPredmeta(); // Inicijalni prikaz za "Sadržaj predmeta"
+    });
+
+    function handleLogin() {
+        const usernameInput = document.getElementById('username').value.trim();
+        if (usernameInput) {
+            loggedInUsername = usernameInput;
+            document.getElementById('loggedInUser').textContent = loggedInUsername;
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+            setActiveSection('osnivanje-predmeta-sekcija');
+            document.getElementById('pageTitle').textContent = "Osnivanje novog predmeta";
+            // Postavi prijavljenog korisnika u polja za potpis
+            if(document.getElementById('upPrimioPotpis')) document.getElementById('upPrimioPotpis').value = loggedInUsername;
+            if(document.getElementById('ipOtpremioPotpis')) document.getElementById('ipOtpremioPotpis').value = loggedInUsername;
+
+        } else {
+            alert('Molimo unesite korisničko ime.');
+        }
+    }
+
+    function handleLogout() { /* ... ostaje isto ... */ 
+        loggedInUsername = '';
+        document.getElementById('loginOverlay').style.display = 'flex';
+        document.getElementById('appContainer').style.display = 'none';
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+    }
+    function setActiveSection(targetId) { /* ... ostaje isto ... */ 
+        document.querySelectorAll('.content-card').forEach(card => card.classList.remove('active-section'));
+        const activeCard = document.getElementById(targetId);
+        if (activeCard) activeCard.classList.add('active-section');
+
+        document.querySelectorAll('.sidebar-nav li').forEach(li => li.classList.remove('active'));
+        const activeLink = document.querySelector(`.sidebar-nav a[href="#${targetId}"]`);
+        if (activeLink && activeLink.parentElement) activeLink.parentElement.classList.add('active');
+        
+        const mainContent = document.querySelector('.main-content-wrapper');
+        if (mainContent) mainContent.scrollTop = 0;
+
+        if (targetId === 'sadrzaj-predmeta-sekcija') {
+            azurirajPrikazSadrzajaPredmeta();
+        }
+    }
+
+    function populateUstrojstveneJedinice() { /* ... ostaje isto ... */ 
+        const selectOmot = document.getElementById('oznakaUstrojstveneJediniceOmot');
+        const selectUrbroj = document.getElementById('urbrojOUJ');
+        const selectUpPrimila = document.getElementById('upPrimilaJedinica');
+
+        const selects = [selectOmot, selectUrbroj, selectUpPrimila].filter(s => s); // Filtriraj null vrijednosti
+
+        selects.forEach(select => {
+            select.innerHTML = select.id === 'urbrojOUJ' ? 
+                '<option value="">-- Nije definirano (opcionalno) --</option>' : 
+                '<option value="">-- Odaberite --</option>';
+            for (const key in DATA_USTROJSTVENE_JEDINICE) {
+                const optionText = `${key} - ${DATA_USTROJSTVENE_JEDINICE[key]}`;
+                select.add(new Option(optionText, key));
+            }
+        });
+         // Postavi default za ulaznu poštu ako postoji "02 - OPĆA UPRAVA"
+        if (selectUpPrimila && DATA_USTROJSTVENE_JEDINICE["02"]) {
+            selectUpPrimila.value = "02";
+        }
+    }
+    function populateGlavnaGrupa() { /* ... ostaje isto ... */ 
+        const select = document.getElementById('klasaGlavnaGrupa');
+        if(!select) return;
+        select.innerHTML = '<option value="">-- Odaberite --</option>'; 
+        for (const grupaCode in DATA_KLASIFIKACIJA) {
+            const optionText = `${grupaCode} - ${DATA_KLASIFIKACIJA[grupaCode].name || 'Nepoznata grupa'}`;
+            select.add(new Option(optionText, grupaCode));
+        }
+        populateGrupa();
+    }
+    function populateGrupa() { /* ... ostaje isto ... */ 
+        const glavnaGrupaCode = document.getElementById('klasaGlavnaGrupa').value;
+        const select = document.getElementById('klasaGrupa');
+        if(!select) return;
+        select.innerHTML = '<option value="">-- Odaberite --</option>';
+        if(document.getElementById('klasaPodgrupa')) document.getElementById('klasaPodgrupa').innerHTML = '<option value="">-- Odaberite --</option>';
+        if(document.getElementById('klasaDjelatnost')) document.getElementById('klasaDjelatnost').innerHTML = '<option value="">-- Odaberite --</option>';
+
+        if (glavnaGrupaCode && DATA_KLASIFIKACIJA[glavnaGrupaCode] && DATA_KLASIFIKACIJA[glavnaGrupaCode].groups) {
+            for (const grupaCode in DATA_KLASIFIKACIJA[glavnaGrupaCode].groups) {
+                const grupaObj = DATA_KLASIFIKACIJA[glavnaGrupaCode].groups[grupaCode];
+                const optionText = `${grupaCode} - ${grupaObj.name || 'Nepoznata podgrupa'}`;
+                select.add(new Option(optionText, grupaCode));
+            }
+        }
+        populatePodgrupa();
+    }
+    function populatePodgrupa() { /* ... ostaje isto ... */ 
+        const glavnaGrupaCode = document.getElementById('klasaGlavnaGrupa').value;
+        const grupaCode = document.getElementById('klasaGrupa').value;
+        const select = document.getElementById('klasaPodgrupa');
+        if(!select) return;
+        select.innerHTML = '<option value="">-- Odaberite --</option>';
+        if(document.getElementById('klasaDjelatnost')) document.getElementById('klasaDjelatnost').innerHTML = '<option value="">-- Odaberite --</option>';
+
+        if (glavnaGrupaCode && grupaCode && 
+            DATA_KLASIFIKACIJA[glavnaGrupaCode] && DATA_KLASIFIKACIJA[glavnaGrupaCode].groups[grupaCode] &&
+            DATA_KLASIFIKACIJA[glavnaGrupaCode].groups[grupaCode].subgroups) {
+            for (const podgrupaCode in DATA_KLASIFIKACIJA[glavnaGrupaCode].groups[grupaCode].subgroups) {
+                const podgrupaObj = DATA_KLASIFIKACIJA[glavnaGrupaCode].groups[grupaCode].subgroups[podgrupaCode];
+                const optionText = `${podgrupaCode} - ${podgrupaObj.name || 'Nepoznata podgrupa'}`;
+                select.add(new Option(optionText, podgrupaCode));
+            }
+        }
+        populateDjelatnost();
+    }
+    function populateDjelatnost() { /* ... ostaje isto ... */ 
+        const glavnaGrupaCode = document.getElementById('klasaGlavnaGrupa').value;
+        const grupaCode = document.getElementById('klasaGrupa').value;
+        const podgrupaCode = document.getElementById('klasaPodgrupa').value;
+        const select = document.getElementById('klasaDjelatnost');
+        if(!select) return;
+        select.innerHTML = '<option value="">-- Odaberite --</option>';
+
+        if (glavnaGrupaCode && grupaCode && podgrupaCode &&
+            DATA_KLASIFIKACIJA[glavnaGrupaCode] && DATA_KLASIFIKACIJA[glavnaGrupaCode].groups[grupaCode] &&
+            DATA_KLASIFIKACIJA[glavnaGrupaCode].groups[grupaCode].subgroups[podgrupaCode] &&
+            DATA_KLASIFIKACIJA[glavnaGrupaCode].groups[grupaCode].subgroups[podgrupaCode].activities) {
+            for (const djelatnostCode in DATA_KLASIFIKACIJA[glavnaGrupaCode].groups[grupaCode].subgroups[podgrupaCode].activities) {
+                const djelatnostText = DATA_KLASIFIKACIJA[glavnaGrupaCode].groups[grupaCode].subgroups[podgrupaCode].activities[djelatnostCode];
+                const optionText = `${djelatnostCode} - ${djelatnostText}`;
+                select.add(new Option(optionText, djelatnostCode));
+            }
+        }
+    }
+
+    function generirajOznake(spremiPredmet = false) {
+        const nazivTijela = document.getElementById('nazivTijela').value.trim();
+        const statusPredmetaElement = document.getElementById('statusPredmeta');
+        const statusPredmetaValue = statusPredmetaElement.value;
+        const statusPredmetaClass = statusPredmetaElement.selectedOptions[0].dataset.class;
+        const datumOsnivanja = document.getElementById('datumOsnivanjaPredmeta').value;
+        const stranka = document.getElementById('strankaPredmeta').value.trim();
+
+        const vrstaPostupka = document.getElementById('vrstaPostupka').value;
+        const oznakaUstrojstveneJediniceOmot = document.getElementById('oznakaUstrojstveneJediniceOmot').value;
+        const oznakaUstrojstveneJediniceOmotText = document.getElementById('oznakaUstrojstveneJediniceOmot').selectedIndex > 0 ? document.getElementById('oznakaUstrojstveneJediniceOmot').options[document.getElementById('oznakaUstrojstveneJediniceOmot').selectedIndex].text : '[Nije odabrano]';
+
+        const klasaGlavnaGrupa = document.getElementById('klasaGlavnaGrupa').value;
+        const klasaGrupa = document.getElementById('klasaGrupa').value;
+        const klasaPodgrupa = document.getElementById('klasaPodgrupa').value;
+        const klasaDjelatnost = document.getElementById('klasaDjelatnost').value;
+        const klasaGodina = document.getElementById('klasaGodina').value.trim() || new Date().getFullYear().toString().slice(-2);
+        const klasaOblik = document.getElementById('klasaOblik').value.trim();
+        const klasaRedniBrojPredmeta = document.getElementById('klasaRedniBrojPredmeta').value.trim() || '1';
+
+        const urbrojOznakaTijela = document.getElementById('urbrojOznakaTijela').value.trim();
+        const urbrojOUJ = document.getElementById('urbrojOUJ').value;
+        const urbrojSluzbenaOsoba = document.getElementById('urbrojSluzbenaOsoba').value.trim();
+        const urbrojGodina = document.getElementById('urbrojGodina').value.trim() || new Date().getFullYear().toString().slice(-2);
+        const urbrojRedniBrojPismena = document.getElementById('urbrojRedniBrojPismena').value.trim() || '1';
+        
+        const predmetOpis = document.getElementById('predmetOpis').value.trim();
+
+        let finalKlasifikacijskaOznaka = "";
+        if (klasaGlavnaGrupa && klasaGrupa && klasaPodgrupa && klasaDjelatnost) {
+            if (vrstaPostupka) finalKlasifikacijskaOznaka += `${vrstaPostupka} `;
+            finalKlasifikacijskaOznaka += `KLASA: ${klasaGlavnaGrupa}${klasaGrupa}${klasaPodgrupa}-${klasaDjelatnost}`;
+            finalKlasifikacijskaOznaka += `/${klasaGodina}`;
+            if (klasaOblik) finalKlasifikacijskaOznaka += `-${klasaOblik}`;
+            finalKlasifikacijskaOznaka += `/${klasaRedniBrojPredmeta}`;
+        } else {
+            finalKlasifikacijskaOznaka = "[Nisu odabrani svi elementi klasifikacije]";
+        }
+
+        let urBroj = "";
+        if (urbrojOznakaTijela) {
+            urBroj = `URBROJ: ${urbrojOznakaTijela}`;
+            if (urbrojOUJ) urBroj += `-${urbrojOUJ}`;
+            if (urbrojSluzbenaOsoba) urBroj += `/${urbrojSluzbenaOsoba}`;
+            urBroj += `-${urbrojGodina}-${urbrojRedniBrojPismena}`;
+        } else {
+            urBroj = "[Nije definirana oznaka tijela za URBROJ]";
+        }
+
+        document.getElementById('klasifikacijskaOznakaResult').textContent = finalKlasifikacijskaOznaka;
+        document.getElementById('urBrojResult').textContent = urBroj;
+        document.getElementById('predmetResult').textContent = predmetOpis || "[Nije unesen opis predmeta]";
+        document.getElementById('strankaResult').textContent = stranka || "[Nije unesena]";
+        document.getElementById('statusPredmetaResult').innerHTML = `<span class="status-badge ${statusPredmetaClass}">${statusPredmetaValue}</span>`;
+
+        document.getElementById('simulacijaNazivTijelaOmot').textContent = nazivTijela || "[Naziv tijela]";
+        document.getElementById('simulacijaUstrojstvenaOmot').textContent = oznakaUstrojstveneJediniceOmotText;
+        
+        let klasaZaOmot = "";
+        if (klasaGlavnaGrupa && klasaGrupa && klasaPodgrupa && klasaDjelatnost) {
+             klasaZaOmot = `${klasaGlavnaGrupa}${klasaGrupa}${klasaPodgrupa}-${klasaDjelatnost}/${klasaGodina}`;
+             if (klasaOblik) klasaZaOmot += `-${klasaOblik}`;
+             klasaZaOmot += `/${klasaRedniBrojPredmeta}`;
+             if (vrstaPostupka) klasaZaOmot = `${vrstaPostupka} ${klasaZaOmot}`;
+        } else {
+            klasaZaOmot = "[Nisu odabrani svi elementi klasifikacije]";
+        }
+        document.getElementById('simulacijaKlasifikacijskaOmot').textContent = klasaZaOmot;
+        document.getElementById('simulacijaPredmetOmot').textContent = predmetOpis || "[Nije unesen opis predmeta]";
+        document.getElementById('simulacijaStatusPredmetaOmot').innerHTML = `<span class="status-badge ${statusPredmetaClass}">${statusPredmetaValue}</span>`;
+
+        if(spremiPredmet){
+            trenutniPredmetPodaci = {
+                nazivTijela, statusPredmetaValue, statusPredmetaClass, datumOsnivanja, stranka,
+                klasa: finalKlasifikacijskaOznaka,
+                urbroj: urBroj, // Osnovni URBROJ za predmet (prvi akt)
+                opis: predmetOpis,
+                pismena: [],
+                dogadaji: []
+            };
+            pismenaZaTrenutniPredmet = [];
+            dogadajiZaTrenutniPredmet = [];
+            pismenaCounter = 1;
+            dogadajiCounter = 1;
+            alert("Podaci o predmetu su spremljeni i postavljeni kao trenutno aktivni.");
+            azurirajPrikazSadrzajaPredmeta(); // Odmah ažuriraj prikaz
+        }
+    }
+    
+    function azurirajPrikazSadrzajaPredmeta() {
+        if (trenutniPredmetPodaci) {
+            document.getElementById('spInfoKlasa').textContent = trenutniPredmetPodaci.klasa;
+            document.getElementById('spInfoUrbroj').textContent = trenutniPredmetPodaci.urbroj;
+            document.getElementById('spInfoOpis').textContent = trenutniPredmetPodaci.opis;
+            document.getElementById('spInfoStranka').textContent = trenutniPredmetPodaci.stranka || "N/A";
+            document.getElementById('spInfoStatus').className = `status-badge ${trenutniPredmetPodaci.statusPredmetaClass}`;
+            document.getElementById('spInfoStatus').textContent = trenutniPredmetPodaci.statusPredmetaValue;
+        } else {
+            document.getElementById('spInfoKlasa').textContent = "Nije odabran/kreiran predmet";
+            document.getElementById('spInfoUrbroj').textContent = "N/A";
+            document.getElementById('spInfoOpis').textContent = "N/A";
+            document.getElementById('spInfoStranka').textContent = "N/A";
+            document.getElementById('spInfoStatus').className = "status-badge";
+            document.getElementById('spInfoStatus').textContent = "N/A";
+        }
+        renderPopisPismena();
+        renderDogadajiNaPredmetu();
+    }
+
+    // --- Funkcije za Knjigu ulazne pošte ---
+    function dodajUlaznuPostu() {
+        const datumPrimitka = document.getElementById('upDatumPrimitka').value;
+        const posiljatelj = document.getElementById('upPosiljatelj').value.trim();
+        const adresaPosiljatelja = document.getElementById('upAdresaPosiljatelja').value.trim();
+        const sadrzajPismena = document.getElementById('upSadrzajPismena').value.trim();
+        const vezaNaPredmet = document.getElementById('upVezaNaPredmet').value.trim();
+        const brojPriloga = document.getElementById('upBrojPriloga').value;
+        const primilaJedinica = document.getElementById('upPrimilaJedinica').value;
+        const primilaJedinicaText = document.getElementById('upPrimilaJedinica').selectedIndex > 0 ? document.getElementById('upPrimilaJedinica').options[document.getElementById('upPrimilaJedinica').selectedIndex].text : '[Nije odabrano]';
+        const primioPotpis = document.getElementById('upPrimioPotpis').value;
+
+        if (!datumPrimitka || !posiljatelj || !sadrzajPismena || !primilaJedinica) {
+            alert("Molimo popunite obavezna polja: Datum primitka, Pošiljatelj, Sadržaj, Primila jedinica.");
+            return;
+        }
+
+        const noviUnos = {
+            rbr: ulaznaPostaCounter++,
+            datumPrimitka, posiljatelj, adresaPosiljatelja, sadrzajPismena, vezaNaPredmet, brojPriloga, primilaJedinicaText, primioPotpis,
+            jop: `JOP-${new Date().getFullYear()}-${String(Math.random()).slice(2, 8)}` // Jednostavna simulacija JOP-a
+        };
+        evidencijaUlaznePoste.unshift(noviUnos); // Dodaj na početak niza
+        renderUlaznaPostaTable();
+        // Opcionalno: očisti formu
+        document.getElementById('upPosiljatelj').value = '';
+        document.getElementById('upAdresaPosiljatelja').value = '';
+        document.getElementById('upSadrzajPismena').value = '';
+        document.getElementById('upVezaNaPredmet').value = '';
+        document.getElementById('upBrojPriloga').value = '0';
+    }
+
+    function renderUlaznaPostaTable() {
+        const tbody = document.getElementById('ulaznaPostaTable').getElementsByTagName('tbody')[0];
+        tbody.innerHTML = ""; // Očisti postojeće unose
+        evidencijaUlaznePoste.forEach(unos => {
+            const row = tbody.insertRow();
+            row.insertCell().textContent = unos.rbr;
+            row.insertCell().textContent = new Date(unos.datumPrimitka).toLocaleDateString('hr-HR');
+            row.insertCell().textContent = unos.posiljatelj;
+            row.insertCell().textContent = unos.sadrzajPismena;
+            row.insertCell().textContent = unos.vezaNaPredmet;
+            row.insertCell().textContent = unos.brojPriloga;
+            row.insertCell().textContent = unos.primioPotpis;
+        });
+    }
+    
+    function generirajPrijemniStampiljPreview() {
+        const nazivTijela = document.getElementById('nazivTijela').value.trim();
+        const orgJedinicaSelect = document.getElementById('upPrimilaJedinica');
+        const orgJedinicaText = orgJedinicaSelect.selectedIndex > 0 ? orgJedinicaSelect.options[orgJedinicaSelect.selectedIndex].text : '[Nije odabrano]';
+        const datumPrimitka = document.getElementById('upDatumPrimitka').value ? new Date(document.getElementById('upDatumPrimitka').value).toLocaleDateString('hr-HR') : '[Datum]';
+        const veza = document.getElementById('upVezaNaPredmet').value.trim() || '[Nema veze]';
+        const prilozi = document.getElementById('upBrojPriloga').value || '0';
+        
+        // Simulacija JOP-a - Jedinstvena Oznaka Pismena
+        const jop = `JOP-${new Date().getFullYear()}-${String(Math.random()).slice(2, 10)}`;
+
+
+        document.getElementById('stampDatum').textContent = datumPrimitka;
+        document.getElementById('stampTijelo').textContent = nazivTijela || '[Naziv Tijela]';
+        document.getElementById('stampOrgJed').textContent = orgJedinicaText;
+        // Za KLASA i URBROJ iz veze, treba parsirati string 'veza'
+        // Ovo je pojednostavljeno, stvarna implementacija bi trebala bolje parsirati
+        let klasaVezaStamp = veza.includes("KLASA:") ? veza.split("KLASA:")[1].split(",")[0].trim() : veza;
+        let urbrojVezaStamp = veza.includes("URBROJ:") ? veza.split("URBROJ:")[1].trim() : "-";
+        document.getElementById('stampKlasa').textContent = klasaVezaStamp;
+        document.getElementById('stampUrbroj').textContent = urbrojVezaStamp;
+        document.getElementById('stampPrilozi').textContent = prilozi;
+        document.getElementById('stampJOP').textContent = jop;
+
+        document.getElementById('prijemniStampiljPreview').style.display = 'block';
+    }
+
+
+    // --- Funkcije za Knjigu izlazne pošte ---
+    function dodajIzlaznuPostu() {
+        const datumOtpreme = document.getElementById('ipDatumOtpreme').value;
+        const primatelj = document.getElementById('ipPrimatelj').value.trim();
+        const adresaPrimatelja = document.getElementById('ipAdresaPrimatelja').value.trim();
+        const sadrzajPosiljke = document.getElementById('ipSadrzajPosiljke').value.trim();
+        const vezaNaAkt = document.getElementById('ipVezaNaAkt').value.trim();
+        const nacinOtpreme = document.getElementById('ipNacinOtpreme').value;
+        const otpremioPotpis = document.getElementById('ipOtpremioPotpis').value;
+
+        if (!datumOtpreme || !primatelj || !sadrzajPosiljke || !vezaNaAkt) {
+            alert("Molimo popunite obavezna polja: Datum otpreme, Primatelj, Sadržaj, Veza na akt.");
+            return;
+        }
+        const noviUnos = {
+            rbr: izlaznaPostaCounter++,
+            datumOtpreme, primatelj, adresaPrimatelja, sadrzajPosiljke, vezaNaAkt, nacinOtpreme, otpremioPotpis
+        };
+        evidencijaIzlaznePoste.unshift(noviUnos);
+        renderIzlaznaPostaTable();
+        // Opcionalno: očisti formu
+        document.getElementById('ipPrimatelj').value = '';
+        document.getElementById('ipAdresaPrimatelja').value = '';
+        document.getElementById('ipSadrzajPosiljke').value = '';
+        document.getElementById('ipVezaNaAkt').value = '';
+    }
+
+    function renderIzlaznaPostaTable() {
+        const tbody = document.getElementById('izlaznaPostaTable').getElementsByTagName('tbody')[0];
+        tbody.innerHTML = "";
+        evidencijaIzlaznePoste.forEach(unos => {
+            const row = tbody.insertRow();
+            row.insertCell().textContent = unos.rbr;
+            row.insertCell().textContent = new Date(unos.datumOtpreme).toLocaleDateString('hr-HR');
+            row.insertCell().textContent = unos.primatelj;
+            row.insertCell().textContent = unos.sadrzajPosiljke;
+            row.insertCell().textContent = unos.vezaNaAkt;
+            row.insertCell().textContent = unos.nacinOtpreme;
+            row.insertCell().textContent = unos.otpremioPotpis;
+        });
+    }
+
+    function generirajOmotnicuPreview() {
+        const nazivTijela = document.getElementById('nazivTijela').value.trim();
+        // Adresa tijela bi trebala biti iz postavki, za sad hardkodirano
+        const adresaTijela = "Ulica Grada Vukovara 1, 10000 Zagreb"; 
+        const klasaUrbroj = document.getElementById('ipVezaNaAkt').value.trim() || '[KLASA/URBROJ]';
+        const primateljNaziv = document.getElementById('ipPrimatelj').value.trim() || '[Primatelj]';
+        const primateljAdresa = document.getElementById('ipAdresaPrimatelja').value.trim() || '[Adresa primatelja]';
+
+        document.getElementById('omPosiljateljNaziv').textContent = nazivTijela || '[Naziv Pošiljatelja]';
+        document.getElementById('omPosiljateljAdresa').textContent = adresaTijela;
+        document.getElementById('omKlasaUrbrojDokumenta').textContent = klasaUrbroj;
+        document.getElementById('omPrimateljNaziv').textContent = primateljNaziv;
+        document.getElementById('omPrimateljAdresa').textContent = primateljAdresa;
+        
+        document.getElementById('omotnicaPreview').style.display = 'block';
+    }
+
+
+    // --- Funkcije za Sadržaj predmeta (Popis pismena i Događaji) ---
+    function dodajPismenoUPredmet() {
+        if (!trenutniPredmetPodaci) {
+            alert("Nije kreiran ili odabran predmet. Molimo prvo osnujte predmet.");
+            return;
+        }
+        const datum = document.getElementById('novoPismenoDatum').value;
+        const vrstaOpis = document.getElementById('novoPismenoVrsta').value.trim();
+        const prilozi = document.getElementById('novoPismenoPrilozi').value;
+
+        if (!datum || !vrstaOpis) {
+            alert("Molimo unesite datum i vrstu/opis pismena.");
+            return;
+        }
+        pismenaZaTrenutniPredmet.push({
+            rbr: pismenaCounter++,
+            datum, vrstaOpis, prilozi
+        });
+        renderPopisPismena();
+        document.getElementById('novoPismenoVrsta').value = '';
+        document.getElementById('novoPismenoPrilozi').value = '0';
+    }
+    function renderPopisPismena() {
+        const tbody = document.getElementById('popisPismenaTable').getElementsByTagName('tbody')[0];
+        tbody.innerHTML = "";
+        pismenaZaTrenutniPredmet.forEach(pismeno => {
+            const row = tbody.insertRow();
+            row.insertCell().textContent = pismeno.rbr;
+            row.insertCell().textContent = new Date(pismeno.datum).toLocaleDateString('hr-HR');
+            row.insertCell().textContent = pismeno.vrstaOpis;
+            row.insertCell().textContent = pismeno.prilozi;
+        });
+    }
+
+    function dodajDogadajNaPredmet() {
+        if (!trenutniPredmetPodaci) {
+            alert("Nije kreiran ili odabran predmet. Molimo prvo osnujte predmet.");
+            return;
+        }
+        const datumVrijemeRaw = document.getElementById('noviDogadajDatum').value;
+        const opis = document.getElementById('noviDogadajOpis').value.trim();
+
+        if (!datumVrijemeRaw || !opis) {
+            alert("Molimo unesite datum/vrijeme i opis događaja.");
+            return;
+        }
+        const datumVrijeme = new Date(datumVrijemeRaw);
+        const formatiranoDatumVrijeme = `${datumVrijeme.toLocaleDateString('hr-HR')} ${datumVrijeme.toLocaleTimeString('hr-HR', { hour: '2-digit', minute: '2-digit'})}`;
+
+        dogadajiZaTrenutniPredmet.push({
+            rbr: dogadajiCounter++,
+            datumVrijeme: formatiranoDatumVrijeme, 
+            opis
+        });
+        renderDogadajiNaPredmetu();
+        document.getElementById('noviDogadajOpis').value = '';
+    }
+    function renderDogadajiNaPredmetu() {
+        const tbody = document.getElementById('dogadajiNaPredmetuTable').getElementsByTagName('tbody')[0];
+        tbody.innerHTML = "";
+        dogadajiZaTrenutniPredmet.forEach(dogadaj => {
+            const row = tbody.insertRow();
+            row.insertCell().textContent = dogadaj.rbr;
+            row.insertCell().textContent = dogadaj.datumVrijeme;
+            row.insertCell().textContent = dogadaj.opis;
+        });
+    }
+
+    // --- Funkcije za ispis ---
+    function printDiv(divId, title) { /* ... ostaje isto ... */ 
+        const divToPrint = document.getElementById(divId);
+        if (divToPrint) {
+            document.getElementById('printPreviewBodyGlobal').innerHTML = divToPrint.innerHTML;
+            document.getElementById('printPreviewOverlayGlobal').classList.remove('hidden');
+            document.body.classList.add('printing');
+            const elementsToHide = document.querySelectorAll('body > *:not(#printPreviewOverlayGlobal)');
+            elementsToHide.forEach(el => el.classList.add('hidden-for-print'));
+
+        } else {
+            alert("Element za ispis nije pronađen: " + divId);
+        }
+    }
+    function closePrintPreviewGlobal() { /* ... ostaje isto ... */ 
+        document.getElementById('printPreviewOverlayGlobal').classList.add('hidden');
+        document.getElementById('printPreviewBodyGlobal').innerHTML = '';
+        document.body.classList.remove('printing');
+        const elementsToShow = document.querySelectorAll('.hidden-for-print');
+        elementsToShow.forEach(el => el.classList.remove('hidden-for-print'));
+    }
+    const printStyle = document.createElement('style');
+    printStyle.innerHTML = ` @media print { body.printing > *:not(#printPreviewOverlayGlobal), body.printing #printPreviewOverlayGlobal > div > *:not(#printPreviewBodyGlobal):not(.print-area-global), .no-print { display: none !important; } #printPreviewOverlayGlobal { position: static !important; width: auto !important; height: auto !important; overflow: visible !important; } #printPreviewBodyGlobal, .print-area-global { display: block !important; width: 100% !important; max-width: 100% !important; box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; } } .hidden-for-print { display: none !important; } `;
+    document.head.appendChild(printStyle);
+
+</script>
+</body>
+</html>
